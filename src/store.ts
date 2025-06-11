@@ -1,42 +1,7 @@
 import { create  , type StateCreator} from "zustand";
-//StateCreator
-import { devtools } from "zustand/middleware";
+import { devtools , persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-// export interface UserSlice {
-//     username:string;
-//     email:string;
-//     setUsername:(username:string)=> void;
-//     setEmail :(email:string) => void;
-// }
 
-
-// //Zustand Slices
-// export const createUserslice : StateCreator<UserSlice>= (set) =>({
-//         username:'Emmanuel',
-//         email:'emmanuel@gmail.com',
-//         setUsername:(username:string)=> set(()=>({username}) ),
-//         setEmail:(email:string)=>set(()=>({email})),
-// });
-
-// export interface PostsSlice {
-//     usernames:string;
-// }
-
-// export const createPostsSlice : StateCreator<PostsSlice> = (set)=>({
-//     usernames:'anson_2',
-// })
-
-
-
-
-// export const useAppStore = create(
-//     devtools<UserSlice & PostsSlice>(
-//         (...a) =>({
-//             ...createUserslice(...a),
-//             ...createPostsSlice(...a)
-//         })
-//     ) 
-// );
 
 export interface UserStore {
     username:string;
@@ -67,23 +32,59 @@ export const useUserStore =  create(
 }),{name:"user" , store:"user"}) 
 );
 
+//without persist
+// export const usePostsStore =  create(
+//     devtools(
+//         immer<PostsStore>
+//         (
+//         (set) =>({
+//         posts:[],
+//         setPosts:(posts:Post[])=> set(()=>({posts})),
+//         addPost:(post:Post) =>
+//             set((state)=>{
+//                 state.posts.push(post)
+//         //    posts:[...state.posts ,post] 
+//         }),
+//         removePost:(id:string)=>
+//             set((state) =>{
+//                 const index = state.posts.findIndex((post)=>post.id === id);
+//                 if(index !== -1){
+//                     state.posts.splice(index , 1);
+//                 }
+//                     // posts:state.posts.filter((post)=>post.id != id)
+//         }),
 
-export const usePostsStore =  create(
-    devtools(
-        immer<PostsStore>(
-        (set) =>({
-        posts:[],
-        setPosts:(posts:Post[])=> set(()=>({posts})),
-        addPost:(post:Post) =>
-            set((state)=>({
-           posts:[...state.posts ,post] 
-        })),
-        removePost:(id:string)=>set((state)=>({posts:state.posts.filter(
-            (post)=>post.id != id)
-        })),
-
-})),
-{name:"posts" , store:"Posts"}
-    )
+// })
+// ),
+// {name:"posts" , store:"Posts"}
+//     )
     
+// );
+ //with persist
+export const usePostsStore = create<PostsStore>()(
+  devtools(
+    persist(
+      immer((set) => ({
+        posts: [],
+        setPosts: (posts: Post[]) => set(() => ({ posts })),
+        addPost: (post: Post) =>
+          set((state) => {
+            state.posts.push(post);
+          }),
+        removePost: (id: string) =>
+          set((state) => {
+            const index = state.posts.findIndex((post) => post.id === id);
+            if (index !== -1) {
+              state.posts.splice(index, 1);
+            }
+          }),
+      })),
+      {
+        name: 'posts', // name of item in the storage (must be unique)
+      }
+    ),
+    {
+      name: 'posts-store', // a unique name for the devtools
+    }
+  )
 );
